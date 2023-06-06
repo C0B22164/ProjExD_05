@@ -249,10 +249,12 @@ def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bgs1 = [pg.transform.rotozoom(pg.image.load("ex05/fig/background.png"), 0, 1.25) for i in range(3)]  # 背景を滑らかに動かすため複数枚読み込む
     bgs2 = [pg.transform.rotozoom(pg.image.load("ex05/fig/background2.png"), 0, 1.25) for i in range(3)]
+    bgs = bgs1
     fences = [pg.transform.rotozoom(pg.image.load("ex05/fig/fence.png"), 0, 1.25) for i in range(3)]  # 柵を滑らかに動かすために複数枚読み込む
     fence_rect = fences[0].get_rect()  # 柵の大きさを取得する
     tmr = 0
     N = 0
+    prob = 100
     
     objs = pg.sprite.Group()
     player = Player()
@@ -267,7 +269,7 @@ def main():
             if event.type == pg.QUIT:
                 return
             if event.type == pg.KEYDOWN:
-                if event.key == pg.K_SPACE:  # SPACEキーを押すとジャンプ
+                if event.key == pg.K_SPACE and not player.sliding:  # SPACEキーを押すとジャンプ
                     player.jump = True
                 if event.key == pg.K_DOWN:
                     player.sliding = True #下キーでスライディング
@@ -279,10 +281,14 @@ def main():
 
             else:
                 player.sliding = False
+
         if tmr % 2000 == 1000:
             bgs = bgs2
-        elif tmr % 2000 == 0:
+        elif tmr % 2000 == 0 and tmr != 0:
             bgs = bgs1
+            prob -= 10
+            if prob < 50:
+                prob = 50
         
         for i in range(len(bgs)):  # 背景画像を複数枚同時に処理
             screen.blit(bgs[i], [WIDTH*i-bg_x, 0])
@@ -292,12 +298,12 @@ def main():
         
         if tmr % 150 == 0:  # 3~5秒のランダムな間隔で障害物を生成
             n = tmr
-            r = random.randint(0, 100)
+            r = random.randint(0, prob)
         if tmr - n  == r and tmr != 0:
-            r2 = random.randint(0, 100)
-            if r2 <= 10:  # 10%の確率でボール状の障害物
+            r2 = random.randint(0, prob)
+            if r2 <= 30:  # 10%の確率でボール状の障害物
                 objs.add(Object_ball())
-            elif r2 <= 30:
+            elif r2 <= 60:
                 objs.add(Object2())
             else:  # 90%の確率で通常の長方形の障害物
                 objs.add(Object())
